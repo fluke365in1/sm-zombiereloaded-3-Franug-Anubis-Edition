@@ -174,7 +174,7 @@ SEffectsEmitAmbientSound(const String:sound[], Float:ambientvolume = 1.0, client
 	if (ZRIsClientValid(client))
 	{
 		// Emit ambient sound.
-		EmitSoundToAll(sound, client, SNDCHAN_AUTO, _, _, ambientvolume);
+		EmitSoundToClient(client, sound, _, SNDCHAN_AUTO, _, _, ambientvolume);
 		
 		// Flag client that sound is playing.
 		bAmbientSoundsIsPlaying[client] = true;
@@ -190,7 +190,7 @@ SEffectsEmitAmbientSound(const String:sound[], Float:ambientvolume = 1.0, client
 			}
 			
 			// Emit ambient sound.
-			EmitSoundToAll(sound, x, SNDCHAN_AUTO, _, _, ambientvolume);
+			EmitSoundToClient(x, sound, _, SNDCHAN_AUTO, _, _, ambientvolume);
 
 		}
 	}
