@@ -213,7 +213,7 @@ SEffectsStopAmbientSound(const String:sound[])
 		}
 		
 		// Stop ambient sound.
-		StopSound(x, SOUND_AMBIENT_CHANNEL, sound);
+		StopSound(x, SNDCHAN_AUTO, sound);
 	}
 }
 
