@@ -371,6 +371,20 @@ int GetIntCookie(int client, Handle handle)
     return StringToInt(sCookieValue);
 }
 
+float GetIntZeCookie(int client)
+{
+    char gCookieValue[11];
+    GetClientCookie(client, g_ZombiesECookie, gCookieValue, sizeof(gCookieValue));
+    return StringToFloat(gCookieValue);
+}
+
+float GetIntCountdownCookie(int client)
+{
+    char cCookieValue[11];
+    GetClientCookie(client, g_CountDownCookie, cCookieValue, sizeof(cCookieValue));
+    return StringToFloat(cCookieValue);
+}
+
 float GetClientVolume(int client){
     float defaultVolume = GetConVarFloat(g_hCvarsList[CVAR_VOLUME_DEFAULT]);
 
@@ -381,154 +395,6 @@ float GetClientVolume(int client){
         Format(vCookieValue , sizeof(vCookieValue), "%0.2f", defaultVolume);
 
     return StringToFloat(vCookieValue);
-}
-
-/**
- * Timer callback, displays countdown to clients.
- * 
- * @param timer	 The timer handle.  
- */ 
-public Action:InfectCountdown(Handle:timer)
-{
-	new bool:countdown = GetConVarBool(g_hCvarsList[CVAR_INFECT_MZOMBIE_COUNTDOWN]);
-	if (!countdown)
-	{
-		InfectStopCountdown();
-		return Plugin_Stop;
-	}
-	
-	// Read the info from the datapack.
-	ResetPack(hInfectCountdownData);
-	new Float:length = ReadPackFloat(hInfectCountdownData);
-	new Float:counter = ReadPackFloat(hInfectCountdownData);
-	
-	// Check if the countdown has finished.
-	if (counter >= length)
-	{
-		InfectStopCountdown();
-		return Plugin_Stop;
-	}
-	
-	new counter_int = RoundToNearest(length - counter);
-	char sounddir[128];
-	char soundfemaledir[128];
-	Format(sounddir, 128, "sound/zr/countdown/%i.mp3", counter_int);
-	Format(soundfemaledir, 128, "sound/zr/countdown/female/%i.mp3", counter_int);
-	
-	if(FileExists(sounddir) && FileExists(soundfemaledir))
-	{
-		for (new i = 1; i <= MaxClients; i++)
-		{
-			if (IsClientInGame(i) && !IsFakeClient(i))
-			{
-				//float selectedVoice = GetClientSoundContdown(i);
-				int selectedVoice = GetIntCookie(i, g_CountDownCookie);
-				float selectedVolume = GetClientVolume(i);
-				if(selectedVoice == 1)
-				{
-					ReplaceString(sounddir, 128, "sound/", "");
-
-					if(g_Game == Game_CSGO) EmitSoundToClientAny(i, sounddir, _, _, _, _, selectedVolume);
-					else EmitSoundToClient(i, sounddir, _, _, _, _, selectedVolume);
-				}
-				if(selectedVoice == 2)
-				{
-					ReplaceString(soundfemaledir, 128, "sound/", "");
-
-					if(g_Game == Game_CSGO) EmitSoundToClientAny(i, soundfemaledir, _, _, _, _, selectedVolume);
-					else EmitSoundToClient(i, soundfemaledir, _, _, _, _, selectedVolume);
-				}
-				else
-				{
-				}
-			}
-		}
-	}
-	
-	// Print the countdown text to the clients.
-	TranslationPrintCenterTextAll(false, "Infect countdown", counter_int);
-	
-	counter++;
-	
-	// Write the new counter value to the datapack.
-	ResetPack(hInfectCountdownData);
-	WritePackFloat(hInfectCountdownData, length);
-	WritePackFloat(hInfectCountdownData, counter);
-	
-	return Plugin_Continue;
-}
-
-CountDown()
-{
-	int count = 1;
-	int countf = 1;
-	char sounddir[128];
-	char soundfemaledir[128];
-	Format(sounddir, 128, "sound/zr/countdown/%i.mp3", count);
-	Format(soundfemaledir, 128, "sound/zr/countdown/female/%i.mp3", countf);
-	
-	while(FileExists(sounddir) && FileExists(soundfemaledir))
-	{
-		AddFileToDownloadsTable(sounddir);
-		AddFileToDownloadsTable(soundfemaledir);
-		ReplaceString(sounddir, 128, "sound/", "");
-		ReplaceString(soundfemaledir, 128, "sound/", "");
-		
-		if(g_Game != Game_CSGO)
-		{
-			PrecacheSound(sounddir);
-			PrecacheSound(soundfemaledir);
-		}
-		else
-		{
-			PrecacheSoundAny(sounddir);
-			PrecacheSoundAny(soundfemaledir);
-		}
-		
-		count++;
-		countf++;
-		Format(sounddir, 128, "sound/zr/countdown/%i.mp3", count);
-		Format(soundfemaledir, 128, "sound/zr/countdown/female/%i.mp3", countf);
-	}
-}
-
-/**
- * Emits a sound from a client.
- * 
- * @param client	The client index.
- * @param sound	 The sound file relative to the sound/ directory.
- * @param level	 The attenuation of the sound.
- */
-ZrsoundsEmitSoundFromClient(client, const String:sound[])
-{
-	for (new i = 1; i <= MaxClients; i++)
-	{
-		if (IsClientInGame(i) && !IsFakeClient(i))
-		{
-			// If sound cvar level.
-			float level = GetClientVolume(i);
-			// If sound cvar is disabled, then stop.
-			new bool:mutezombie = CookiesGetClientCookieBool(i, g_ZombiesECookie);
-			if (!mutezombie)
-			{
-				return;
-			}
-			if (g_Game == Game_CSGO)
-			{
-				// Precache sound before playing.// Emit sound from client.
-				PrecacheSoundAny(sound);
-				// Emit sound from client.
-				EmitSoundToClientAny(i, sound, client, _, _, _, level); // Som Zumbi
-			}
-			else
-			{
-				// Precache sound before playing.// Emit sound from client.
-				PrecacheSound(sound);
-				// Emit sound from client.
-				EmitSoundToClient(i, sound, client, _, _, _, level); // Som Zumbi
-			}
-		}
-	}
 }
 
 //Toggle CountDown Voices.

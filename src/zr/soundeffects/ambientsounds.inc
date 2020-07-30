@@ -127,6 +127,11 @@ AmbientSoundsOnMapStart()
  */
 AmbientSoundsOnRoundStart()
 {
+	// x = client index
+	for (new x = 1; x <= MaxClients; x++)
+	{
+		bAmbientSoundsIsPlaying[x] = false;
+	}
 	// Restart ambient sound for all clients.
 	AmbientSoundsRestart();
 }

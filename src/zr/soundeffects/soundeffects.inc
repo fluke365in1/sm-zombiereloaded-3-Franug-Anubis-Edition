@@ -169,30 +169,15 @@ SEffectsOnClientHuman(client)
 SEffectsEmitAmbientSound(const String:sound[], Float:ambientvolume = 1.0, client = -1)
 {
 	// Precache sound before playing.
-	if (g_Game == Game_CSGO)
-	{
-		PrecacheSoundAny(sound);
-	}
-	else
-	{
-		PrecacheSound(sound);
-	}
+	PrecacheSound(sound);
 	
 	if (ZRIsClientValid(client))
 	{
 		// Emit ambient sound.
-		if (g_Game == Game_CSGO)
-		{
-			EmitSoundToClientAny(client, sound, SOUND_FROM_PLAYER, SOUND_AMBIENT_CHANNEL, _, _, ambientvolume);
-		}
-		else
-		{
-			EmitSoundToClient(client, sound, SOUND_FROM_PLAYER, SOUND_AMBIENT_CHANNEL, _, _, ambientvolume);
-		}
+		EmitSoundToAll(sound, client, SNDCHAN_AUTO, _, _, ambientvolume);
 		
 		// Flag client that sound is playing.
 		bAmbientSoundsIsPlaying[client] = true;
-		
 	}
 	else
 	{
@@ -205,14 +190,8 @@ SEffectsEmitAmbientSound(const String:sound[], Float:ambientvolume = 1.0, client
 			}
 			
 			// Emit ambient sound.
-			if (g_Game == Game_CSGO)
-			{
-				EmitSoundToClientAny(x, sound, SOUND_FROM_PLAYER, SNDCHAN_AUTO, _, _, ambientvolume);
-			}
-			else
-			{
-				EmitSoundToClient(x, sound, SOUND_FROM_PLAYER, SNDCHAN_AUTO, _, _, ambientvolume);
-			}
+			EmitSoundToAll(sound, x, SNDCHAN_AUTO, _, _, ambientvolume);
+
 		}
 	}
 }
@@ -242,4 +221,45 @@ SEffectsStopAmbientSound(const String:sound[])
  * Replay an ambient sound
  * 
  * @param sound	 The path to the sound file (relative to sounds/)
- */ 
+ */
+
+/**
+ * Emits a sound from a client.
+ * 
+ * @param client	The client index.
+ * @param sound	 The sound file relative to the sound/ directory.
+ * @param level	 The attenuation of the sound.
+ */
+ZrsoundsEmitSoundFromClient(client, const String:sound[])
+{
+	for (new i = 1; i <= MaxClients; i++)
+	{
+		if (IsClientInGame(i) && !IsFakeClient(i))
+		{
+			// If sound cvar level.
+			float level = GetClientVolume(i);
+			
+			// If sound cvar is disabled, then stop.
+			float mutezombie = GetIntZeCookie(i);
+			
+			if (!mutezombie)
+			{
+				return;
+			}
+			if (g_Game == Game_CSGO)
+			{
+				// Precache sound before playing.// Emit sound from client.
+				PrecacheSoundAny(sound);
+				// Emit sound from client.
+				EmitSoundToClientAny(i, sound, client, _, _, _, level); // Som Zumbi
+			}
+			else
+			{
+				// Precache sound before playing.// Emit sound from client.
+				PrecacheSound(sound);
+				// Emit sound from client.
+				EmitSoundToClient(i, sound, client, _, _, _, level); // Som Zumbi
+			}
+		}
+	}
+}
